@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<ProfilingTarget xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <ProjectTarget>
+    <TargetProject>4265bc87-4afd-4863-aa65-63e5c1613c64</TargetProject>
+    <FriendlyName>python-logic-grid</FriendlyName>
+  </ProjectTarget>
+  <Reports />
+</ProfilingTarget>
