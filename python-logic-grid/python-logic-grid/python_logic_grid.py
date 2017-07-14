@@ -106,7 +106,8 @@ class Rule():
                             self.grid.values[row][col] = ""
 
 class Grid():
-    def __init__(self):
+    def __init__(self, intro):
+        self.intro = intro
         self.values = []
         self.rules = []
         self.properties = [["Red", "Green", "Yellow", "Blue", "White"], ["Dogs", "Cats", "Fish", "Birds", "Horses"], ["Tea", "Water", "Beer", "Milk", "Coffee"], ["Brit", "Swede", "Dane", "Norwegian", "German"], ["Pall Mall", "Dunhill", "Blend", "Bluemaster", "Prince"]]
@@ -114,14 +115,16 @@ class Grid():
         self.locations = ["1", "2", "3", "4", "5"]
         self.no_of_properties = len(self.properties)
         self.no_of_combinations = len(self.properties[0])
-        self.output_text = "The {4} lives in house number {0}, which is painted {1}. He keep {2}. drinks {3}, and smokes {5} cigarettes."
+        self.output_text = "The {4} lives in house number {0}, which is painted {1}. He keep {2}. drinks {3}, and smokes {5} cigars."
         for property in self.properties:
             for each in property:
                 temp = [each for x in range(0, self.no_of_properties)]
                 self.values.append(temp)
     def __str__(self):
         l = 0
-        output = ""
+        output = self.intro
+        output += "\n"
+        output += "\n"
         for rule in self.rules:
             output += str(rule)
             output += "\n"
@@ -227,7 +230,7 @@ class Grid():
 
 class Main():
     def __init__(self):
-        puzzle = Grid()
+        puzzle = Grid("There are five houses in five different colours.\nIn each house lives a person with a different nationality.\nThe five owners drink a different beverage, smoke different brands of cigar, and keep different pets.")
         puzzle.add_rule("Brit", "Has", "Red","The {0} lives in the {2} house")
         puzzle.add_rule("Swede", "Has", "Dogs","The {0} keeps {2} as pets")
         puzzle.add_rule("Dane", "Has", "Tea", "The {0} drinks {2}")
