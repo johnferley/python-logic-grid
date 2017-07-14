@@ -1,3 +1,5 @@
+import pickle
+
 def search(p, ps):
     return any(p in search for search in ps)
 
@@ -106,20 +108,24 @@ class Rule():
                             self.grid.values[row][col] = ""
 
 class Grid():
-    def __init__(self, intro):
-        self.intro = intro
+    def __init__(self):
+        self.intro = ""
+        self.initialised = False
         self.values = []
         self.rules = []
-        self.properties = [["Red", "Green", "Yellow", "Blue", "White"], ["Dogs", "Cats", "Fish", "Birds", "Horses"], ["Tea", "Water", "Beer", "Milk", "Coffee"], ["Brit", "Swede", "Dane", "Norwegian", "German"], ["Pall Mall", "Dunhill", "Blend", "Bluemaster", "Prince"]]
+        self.properties = []
         self.RELATIONS = ["Left", "Right", "Has", "Neighbor", "At"]
-        self.locations = ["1", "2", "3", "4", "5"]
-        self.no_of_properties = len(self.properties)
-        self.no_of_combinations = len(self.properties[0])
-        self.output_text = "The {4} lives in house number {0}, which is painted {1}. He keep {2}. drinks {3}, and smokes {5} cigars."
-        for property in self.properties:
-            for each in property:
-                temp = [each for x in range(0, self.no_of_properties)]
-                self.values.append(temp)
+        self.locations = []
+        self.no_of_properties = 0
+        self.no_of_combinations = 0
+        self.output_text = ""
+    def build_grid(self):
+        if self.initialised:
+            self.values = []
+            for property in self.properties:
+                for each in property:
+                    temp = [each for x in range(0, self.no_of_properties)]
+                    self.values.append(temp)
     def __str__(self):
         l = 0
         output = self.intro
@@ -172,81 +178,159 @@ class Grid():
             output += "\n"
         return output.rstrip()
     def add_rule(self, p1, r, p2, text):
-        if r == "At":
-            if search(p1, self.properties) and search(p2, self.locations) and search(r, self.RELATIONS):
-                self.rules.append(Rule(p1, r, p2, self, text))
+        if self.initialised:
+            if r == "At":
+                if search(p1, self.properties) and search(p2, self.locations) and search(r, self.RELATIONS):
+                    self.rules.append(Rule(p1, r, p2, self, text))
+                else:
+                    print("Invalid properties:",p1,r,p2)
             else:
-                print("Invalid properties:",p1,r,p2)
+                if search(p1, self.properties) and search(p2, self.properties) and search(r, self.RELATIONS):
+                    self.rules.append(Rule(p1, r, p2, self, text))
+                else:
+                    print("Invalid properties:",p1,r,p2)
+    def add_properties(self, p, i = None):
+        if self.initialised:
+            if i == None:
+                if isinstance(p, list):
+                    while len(p) < self.no_of_combinations:
+                        p.append(None)
+                    while len(p) > self.no_of_combinations:
+                        for each in self.properties:
+                            while len(each) < len(p):
+                                each.append(None)
+                    self.properties.append(p)
+            else:
+                if isinstance(p, list):
+                    self.properties[i] += p1
+                    l = len(properties[i])
+                    for each in properties:
+                        while len(each) < len(l):
+                            each.append(None)
+                else:
+                    self.properties[i].append(str(p))
+                    l = len(self.properties[i])
+                    for each in self.properties:
+                        while len(each) < len(l):
+                            each.append(None)
         else:
-            if search(p1, self.properties) and search(p2, self.properties) and search(r, self.RELATIONS):
-                self.rules.append(Rule(p1, r, p2, self, text))
-            else:
-                print("Invalid properties:",p1,r,p2)
-    def add_property(self):
+            if isinstance(p, list) and i == None:
+                self.properties.append(p)
+                self.initialised = True
+        self.no_of_properties = len(self.properties)
+        self.no_of_combinations = len(self.properties[0])
+    def change_properties(self, p1, p2):
+        if self.initialised:
+            self.no_of_properties = len(self.properties)
+            self.no_of_combinations = len(self.properties[0])
+    def remove_properties(self, p):
+        if self.initialised:
+            self.no_of_properties = len(self.properties)
+            self.no_of_combinations = len(self.properties[0])
+    def add_locations(self, l):
+        if isinstance(l, list):
+            self.locations += l
+        else:
+            self.locations.append(str(l))
+    def change_locations(self, p1, p2):
         pass
-    def add_location(self):
+    def remove_locations(self, p):
         pass
+    def change_intro(self, s):
+        self.intro = s
+    def change_output_text(self, s):
+        self.output_text = s
     def find_property(self, p):
-        results = []
-        if not search(p, self.properties):
-            print("Invalid property:", p)
-        else:
-            for row in range(0, len(self.values)):
-                for col in range(0, self.no_of_properties):
-                    if self.values[row][col] == p:
-                        results.append([row,col])
-        return results
-    def validate(self):
-        for rule in self.rules:
-            rule.validate()
-        counter = 0
-        for prop in range(0, self.no_of_properties):
-            for row in range(0 + (prop * self.no_of_combinations), self.no_of_combinations + (prop * self.no_of_combinations)):
-                if self.values[row].count("") == len(self.values[row]) - 1:
-                    for property in self.values[row]:
-                        if property != "":
-                            i = row
-                            j = self.values[row].index(property)
-                            break
-                    for row2 in range(0 + (prop * self.no_of_combinations), self.no_of_combinations + (prop * self.no_of_combinations)):
-                        if self.values[row2][j] != "" and row2 != i:
-                            counter += 1
-                            self.values[row2][j] = ""
-            for col in range(0, self.no_of_properties):
-                n = 0
+        if self.initialised:
+            results = []
+            if not search(p, self.properties):
+                print("Invalid property:", p)
+            else:
+                for row in range(0, len(self.values)):
+                    for col in range(0, self.no_of_properties):
+                        if self.values[row][col] == p:
+                            results.append([row,col])
+            return results
+    def solve(self):
+        if self.initialised:
+            for rule in self.rules:
+                rule.validate()
+            counter = 0
+            for prop in range(0, self.no_of_properties):
                 for row in range(0 + (prop * self.no_of_combinations), self.no_of_combinations + (prop * self.no_of_combinations)):
-                    if self.values[row][col] != "":
-                        n += 1
-                        i = row
-                        j = col
-                if n == 1:
-                    for col2 in range(0, self.no_of_properties):
-                        if col2 != j and self.values[i][col2] != "":
-                            counter += 1
-                            self.values[i][col2] = ""
+                    if self.values[row].count("") == len(self.values[row]) - 1:
+                        for property in self.values[row]:
+                            if property != "":
+                                i = row
+                                j = self.values[row].index(property)
+                                break
+                        for row2 in range(0 + (prop * self.no_of_combinations), self.no_of_combinations + (prop * self.no_of_combinations)):
+                            if self.values[row2][j] != "" and row2 != i:
+                                counter += 1
+                                self.values[row2][j] = ""
+                for col in range(0, self.no_of_properties):
+                    n = 0
+                    for row in range(0 + (prop * self.no_of_combinations), self.no_of_combinations + (prop * self.no_of_combinations)):
+                        if self.values[row][col] != "":
+                            n += 1
+                            i = row
+                            j = col
+                    if n == 1:
+                        for col2 in range(0, self.no_of_properties):
+                            if col2 != j and self.values[i][col2] != "":
+                                counter += 1
+                                self.values[i][col2] = ""
 
-        if counter > 0:
-            self.validate()
+            if counter > 0:
+                self.solve()
 
 class Main():
     def __init__(self):
-        puzzle = Grid("There are five houses in five different colours.\nIn each house lives a person with a different nationality.\nThe five owners drink a different beverage, smoke different brands of cigar, and keep different pets.")
-        puzzle.add_rule("Brit", "Has", "Red","The {0} lives in the {2} house")
-        puzzle.add_rule("Swede", "Has", "Dogs","The {0} keeps {2} as pets")
-        puzzle.add_rule("Dane", "Has", "Tea", "The {0} drinks {2}")
-        puzzle.add_rule("Green", "Left", "White", "The {0} house is on the {1} of the {2} house")
-        puzzle.add_rule("Green", "Has", "Coffee", "The {0} homeowner drinks {2}")
-        puzzle.add_rule("Pall Mall", "Has", "Birds", "The person who smokes {0} rears {2}")
-        puzzle.add_rule("Yellow", "Has", "Dunhill", "The owner of the {0} house smokes {2}")
-        puzzle.add_rule("Milk", "At", "3", "The man living in the center house drinks {0}")
-        puzzle.add_rule("Norwegian", "At", "1", "The {0} lives in the first house")
-        puzzle.add_rule("Blend", "Neighbor", "Cats", "The man who smokes {0} lives next to the one who keeps {2}")
-        puzzle.add_rule("Dunhill", "Neighbor", "Horses", "The man who keeps the {2} lives next to the man who smokes {0}")
-        puzzle.add_rule("Bluemaster", "Has", "Beer", "The owner who smokes {0} drinks {2}")
-        puzzle.add_rule("German", "Has", "Prince", "The {0} smokes {2}")
-        puzzle.add_rule("Norwegian", "Neighbor", "Blue", "The {0} lives next to the {2} house")
-        puzzle.add_rule("Blend", "Neighbor", "Water", "The man who smokes {0} has a neighbor who drinks {2}")
-        puzzle.validate()
-        print(puzzle)
+        self.puzzle = Grid()
+    def __str__(self):
+        return str(self.puzzle)
+    def save_puzzle(self, filename):
+        output = open(filename, "wb")
+        pickle.dump(self.puzzle, output, pickle.HIGHEST_PROTOCOL)
+        output.close()
+    def load_puzzle(self, filename):
+        input = open(filename, "rb")
+        self.puzzle = pickle.load(input)
+        input.close()
+    def solve(self):
+        self.puzzle.solve()
+    def test_run(self):
+        self.puzzle = Grid()
+        self.puzzle.change_intro("There are five houses in five different colours.\nIn each house lives a person with a different nationality.\nThe five owners drink a different beverage, smoke different brands of cigar, and keep different pets.")
+        self.puzzle.change_output_text("The {4} lives in house number {0}, which is painted {1}. He keep {2}. drinks {3}, and smokes {5} cigars.")
+        self.puzzle.add_locations(["1", "2", "3", "4", "5"])
+        self.puzzle.add_properties(["Red", "Green", "Yellow", "Blue", "White"])
+        self.puzzle.add_properties(["Dogs", "Cats", "Fish", "Birds", "Horses"])
+        self.puzzle.add_properties(["Tea", "Water", "Beer", "Milk", "Coffee"])
+        self.puzzle.add_properties(["Brit", "Swede", "Dane", "Norwegian", "German"])
+        self.puzzle.add_properties(["Pall Mall", "Dunhill", "Blend", "Bluemaster", "Prince"])
+        self.puzzle.build_grid()
+        self.puzzle.add_rule("Brit", "Has", "Red","The {0} lives in the {2} house")
+        self.puzzle.add_rule("Swede", "Has", "Dogs","The {0} keeps {2} as pets")
+        self.puzzle.add_rule("Dane", "Has", "Tea", "The {0} drinks {2}")
+        self.puzzle.add_rule("Green", "Left", "White", "The {0} house is on the {1} of the {2} house")
+        self.puzzle.add_rule("Green", "Has", "Coffee", "The {0} homeowner drinks {2}")
+        self.puzzle.add_rule("Pall Mall", "Has", "Birds", "The person who smokes {0} rears {2}")
+        self.puzzle.add_rule("Yellow", "Has", "Dunhill", "The owner of the {0} house smokes {2}")
+        self.puzzle.add_rule("Milk", "At", "3", "The man living in the center house drinks {0}")
+        self.puzzle.add_rule("Norwegian", "At", "1", "The {0} lives in the first house")
+        self.puzzle.add_rule("Blend", "Neighbor", "Cats", "The man who smokes {0} lives next to the one who keeps {2}")
+        self.puzzle.add_rule("Dunhill", "Neighbor", "Horses", "The man who keeps the {2} lives next to the man who smokes {0}")
+        self.puzzle.add_rule("Bluemaster", "Has", "Beer", "The owner who smokes {0} drinks {2}")
+        self.puzzle.add_rule("German", "Has", "Prince", "The {0} smokes {2}")
+        self.puzzle.add_rule("Norwegian", "Neighbor", "Blue", "The {0} lives next to the {2} house")
+        self.puzzle.add_rule("Blend", "Neighbor", "Water", "The man who smokes {0} has a neighbor who drinks {2}")
+        self.puzzle.solve()
+        print(self.puzzle)
+        self.save_puzzle("puzzle_1.pk1")
 
-Main()
+a = Main()
+#a.test_run()
+a.load_puzzle("puzzle_1.pk1")
+a.solve()
+print(a)
