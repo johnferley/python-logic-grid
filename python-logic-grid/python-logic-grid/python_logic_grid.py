@@ -1,4 +1,5 @@
 import pickle
+import textwrap
 
 def search(p, ps):
     return any(p in search for search in ps)
@@ -284,11 +285,144 @@ class Grid():
             if counter > 0:
                 self.solve()
 
+class UI_Text():
+    def __init__(self, parent):
+        self.level = 0
+        self.width = 55
+        self.divided = False
+        self.display_divider()
+        self.display_text("Welcome to the Logic Grid Solver")
+        self.display_divider()
+        self.display_text("Select options by typing the number and pressing enter.")
+        self.display_divider()
+        self.main_loop()
+    def main_loop(self):
+        self.display_status()
+        while self.level != -1:
+            self.display_menu()
+        self.display_divider()
+        self.display_text("Closing...")
+        self.display_divider()
+    def display_divider(self):
+        if self.divided == False:
+            self.divided = True
+            print("+",end="")
+            print("-" * 55,end="")
+            print("+",end="\n")
+    def display_text(self, text):
+        self.divided = False
+        if len(text) <= self.width:
+            print("|",end="")
+            print("{message: <{fill}}".format(message=text, fill=str(self.width)),end="")
+            print("|",end="\n")
+        else:
+            text = textwrap.wrap(text, width = self.width)
+            for line in text:
+                print("|",end="")
+                print("{message: <{fill}}".format(message=line, fill=str(self.width)),end="")
+                print("|",end="\n")
+    def display_input(self, text):
+        self.divided = False
+        if len(text) <= self.width:
+            string = "|"
+            string += "{message: <{fill}}".format(message=text, fill=str(self.width))
+            string += "|\n"
+        else:
+            text = textwrap.wrap(text, width = self.width)
+            for line in text:
+                string = "|"
+                string += "{message: <{fill}}".format(message=line, fill=str(self.width))
+                string += "|\n"
+        string += "+"
+        string += "-" * 55
+        string += "+\n"
+        output = input(string)
+        return output
+    def display_menu(self):
+        if self.level == 0:
+            self.display_divider()
+            self.display_text("MAIN MENU")
+            self.display_divider()
+            self.display_text("1: New Puzzle")
+            self.display_text("2: Load puzzle")
+            self.display_text("3: Save puzzle")
+            self.display_text("4: Edit puzzle")
+            self.display_text("5: Solve puzzle")
+            self.display_text("6: Help")
+            self.display_text("0: Exit")
+            self.display_divider()
+            input_ok = False
+            while not input_ok:
+                self.display_divider()
+                selection = self.display_input("Make a selection: ")
+                self.display_divider()
+                try:
+                    selection = int(selection)
+                    if selection in range(0, 7):
+                        input_ok = True
+                    else:
+                        self.display_divider()
+                        self.display_text("Error: Please enter a number between 0 and 6.")
+                        self.display_divider()
+                except:
+                    self.display_divider()
+                    self.display_text("Error: Please enter a number.")
+                    self.display_divider()
+            if selection == 0:
+                self.level = -1
+            elif selection == 1:
+                self.level = 1
+            elif selection == 2:
+                self.level = 2
+            elif selection == 3:
+                self.level = 3
+            elif selection == 4:
+                self.level = 4
+            elif selection == 5:
+                self.level = 5
+            elif selection == 6:
+                self.level = 6
+        elif self.level == 1:
+            pass
+        elif self.level == 2:
+            pass
+        elif self.level == 3:
+            pass
+        elif self.level == 4:
+            pass
+        elif self.level == 5:
+            pass
+        elif self.level == 6:
+            self.display_divider()
+            self.display_text("HELP")
+            self.display_divider()
+            self.display_text("Navigate the menus by entering the corresponding key and pressing enter.")
+            self.display_text("Puzzles can be saved on loaded from *.pkl files")
+            self.display_text("Make sure all the parameters and rules/clues have been set up before selecting solve.")
+            self.display_divider()
+            self.display_input("Press any key to return to the main menu")
+            self.display_divider()
+            self.level = 0
+    def display_status(self):
+        pass
+    
+class UI_GUI():
+    def __init__(self, parent):
+        pass
+
 class Main():
-    def __init__(self):
+    def __init__(self, ui):
         self.puzzle = Grid()
-    def __str__(self):
-        return str(self.puzzle)
+        self.ui = ui
+        self.init_ui()
+    def init_ui(self):
+        if self.ui == "text":
+            run = UI_Text(self)
+        elif ui == "gui":
+            run = UI_GUI(self)
+        else:
+            print("Invalid UI, using text.")
+            run = UI_Text()
     def save_puzzle(self, filename):
         output = open(filename, "wb")
         pickle.dump(self.puzzle, output, pickle.HIGHEST_PROTOCOL)
@@ -327,10 +461,10 @@ class Main():
         self.puzzle.add_rule("Blend", "Neighbor", "Water", "The man who smokes {0} has a neighbor who drinks {2}")
         self.puzzle.solve()
         print(self.puzzle)
-        self.save_puzzle("puzzle_1.pk1")
+        self.save_puzzle("puzzle_1.pkl")
 
-a = Main()
+a = Main("text")
 #a.test_run()
-a.load_puzzle("puzzle_1.pk1")
-a.solve()
-print(a)
+#a.load_puzzle("puzzle_1.pk1")
+#a.solve()
+#print(a)
