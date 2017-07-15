@@ -1,5 +1,6 @@
 import pickle
 import textwrap
+import pathlib
 
 def search(p, ps):
     return any(p in search for search in ps)
@@ -288,7 +289,8 @@ class Grid():
 class UI_Text():
     def __init__(self, parent):
         self.level = 0
-        self.width = 55
+        self.width = 75
+        self.parent = parent
         self.divided = False
         self.display_divider()
         self.display_text("Welcome to the Logic Grid Solver")
@@ -297,7 +299,6 @@ class UI_Text():
         self.display_divider()
         self.main_loop()
     def main_loop(self):
-        self.display_status()
         while self.level != -1:
             self.display_menu()
         self.display_divider()
@@ -307,7 +308,7 @@ class UI_Text():
         if self.divided == False:
             self.divided = True
             print("+",end="")
-            print("-" * 55,end="")
+            print("-" * self.width,end="")
             print("+",end="\n")
     def display_text(self, text):
         self.divided = False
@@ -334,12 +335,14 @@ class UI_Text():
                 string += "{message: <{fill}}".format(message=line, fill=str(self.width))
                 string += "|\n"
         string += "+"
-        string += "-" * 55
-        string += "+\n"
+        string += "-" * self.width
+        string += "+\n>>>"
         output = input(string)
         return output
     def display_menu(self):
         if self.level == 0:
+            self.display_divider()
+            self.display_status()
             self.display_divider()
             self.display_text("MAIN MENU")
             self.display_divider()
@@ -385,7 +388,32 @@ class UI_Text():
         elif self.level == 1:
             pass
         elif self.level == 2:
-            pass
+            self.display_divider()
+            self.display_text("LOAD PUZZLE")
+            self.display_divider()
+            found = False
+            while not found:
+                self.display_divider()
+                filename = self.display_input("Enter the filename of the puzzle to load (0 to cancel):")
+                self.display_divider()
+                if filename == "0":
+                    found = True
+                else:
+                    if not filename.endswith(".pkl"):
+                        filename += ".pkl"
+                    filename = pathlib.Path(filename)
+                    if filename.is_file():
+                        found = True
+                    else:
+                        self.display_divider()
+                        self.display_text("File not found")
+                        self.display_divider()
+            if isinstance(filename, pathlib.Path):
+                self.display_divider()
+                self.display_text("Loading puzzle...")
+                self.display_divider()
+                self.parent.load_puzzle(filename)
+            self.level = 0
         elif self.level == 3:
             pass
         elif self.level == 4:
@@ -397,15 +425,18 @@ class UI_Text():
             self.display_text("HELP")
             self.display_divider()
             self.display_text("Navigate the menus by entering the corresponding key and pressing enter.")
-            self.display_text("Puzzles can be saved on loaded from *.pkl files")
+            self.display_text("Puzzles can be saved or loaded from *.pkl files.")
             self.display_text("Make sure all the parameters and rules/clues have been set up before selecting solve.")
             self.display_divider()
-            self.display_input("Press any key to return to the main menu")
+            self.display_input("Press any key to return to the main menu.")
             self.display_divider()
             self.level = 0
     def display_status(self):
-        pass
-    
+        if self.parent.puzzle.initialised:
+            output = "Loc: " + str(len(self.parent.puzzle.locations)) + " Prop: " + str(self.parent.puzzle.no_of_properties) + " Comb: " + str(self.parent.puzzle.no_of_combinations) + " Rules: " + str(len(self.parent.puzzle.rules))
+            self.display_text(output)
+        else:
+            self.display_text("Puzzle Uninitialised")
 class UI_GUI():
     def __init__(self, parent):
         pass
@@ -424,13 +455,17 @@ class Main():
             print("Invalid UI, using text.")
             run = UI_Text()
     def save_puzzle(self, filename):
-        output = open(filename, "wb")
-        pickle.dump(self.puzzle, output, pickle.HIGHEST_PROTOCOL)
-        output.close()
+        try:
+            with open(filename, "wb") as output:
+                pickle.dump(self.puzzle, output, pickle.HIGHEST_PROTOCOL)
+        except:
+            print("Unable to save file")
     def load_puzzle(self, filename):
-        input = open(filename, "rb")
-        self.puzzle = pickle.load(input)
-        input.close()
+        try:
+            with open(filename, "rb") as input:
+                self.puzzle = pickle.load(input)
+        except OSError:
+            print("Unable to open file")
     def solve(self):
         self.puzzle.solve()
     def test_run(self):
