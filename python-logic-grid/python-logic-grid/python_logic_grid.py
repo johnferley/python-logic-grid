@@ -364,10 +364,11 @@ class UI_Text():
             print("+",end="")
             print("-" * self.width,end="")
             print("+",end="\n")
-    def display_text(self, text):
+    def display_text(self, text, indent = 0):
         self.set_width()
         self.divided = False
         self.numbering = 0
+        text = (" " * indent) + text
         if len(text) <= self.width:
             print("|",end="")
             print("{message: <{fill}}".format(message=text, fill=str(self.width)),end="")
@@ -378,10 +379,11 @@ class UI_Text():
                 print("|",end="")
                 print("{message: <{fill}}".format(message=line, fill=str(self.width)),end="")
                 print("|",end="\n")
-    def display_input(self, text):
+    def display_input(self, text, indent = 0):
         self.set_width()
         self.divided = False
         self.numbering = 0
+        text = (" " * indent) + text
         if len(text) <= self.width:
             string = "|"
             string += "{message: <{fill}}".format(message=text, fill=str(self.width))
@@ -398,11 +400,12 @@ class UI_Text():
         string += "+\n>>> "
         output = input(string)
         return output
-    def display_numbered(self, text, style = ":"):
+    def display_numbered(self, text, style = ":", indent = 0):
         self.set_width()
         self.divided = False
         self.numbering += 1
         self.no_options = self.numbering
+        text = (" " * indent) + text
         number = str(self.numbering) + style
         if len(text) <= self.width:
             print("|"+str(number)+" ",end="")
@@ -420,10 +423,11 @@ class UI_Text():
                     print(" "*(1 + len(number)),end="")
                 print("{message: <{fill}}".format(message=line, fill=str(self.width - (1 + len(number)))),end="")
                 print("|",end="\n")
-    def display_bullet(self, text, style = "-"):
+    def display_bullet(self, text, style = "-", indent = 0):
         self.set_width()
         self.divided = False
         self.numbering = 0
+        text = (" " * indent) + text
         if len(text) <= self.width:
             print("|"+str(style)+" ",end="")
             print("{message: <{fill}}".format(message=text, fill=str(self.width - (1 + len(style)))),end="")
