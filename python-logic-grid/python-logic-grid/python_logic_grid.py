@@ -285,6 +285,18 @@ class Grid():
 
             if counter > 0:
                 self.solve()
+    def solution(self):
+        output = []
+        for house in range(0, len(self.locations)):
+            temp = [None for x in range(0, self.no_of_properties)]
+            for i in range(0, self.no_of_properties):
+                s = ""
+                for row in range(0 + (i * self.no_of_combinations), self.no_of_combinations + (i * self.no_of_combinations)):
+                    s += self.values[row][house]
+                temp[i] = s
+            output.append(self.output_text.format(self.locations[house], temp[0], temp[1], temp[2], temp[3], temp[4]))
+        return output
+
 
 class UI_Text():
     def __init__(self, parent):
@@ -292,6 +304,8 @@ class UI_Text():
         self.width = 75
         self.parent = parent
         self.divided = False
+        self.numbering = 0
+        self.no_options = 0
         self.display_divider()
         self.display_text("Welcome to the Logic Grid Solver")
         self.display_divider()
@@ -312,6 +326,7 @@ class UI_Text():
             print("+",end="\n")
     def display_text(self, text):
         self.divided = False
+        self.numbering = 0
         if len(text) <= self.width:
             print("|",end="")
             print("{message: <{fill}}".format(message=text, fill=str(self.width)),end="")
@@ -324,6 +339,7 @@ class UI_Text():
                 print("|",end="\n")
     def display_input(self, text):
         self.divided = False
+        self.numbering = 0
         if len(text) <= self.width:
             string = "|"
             string += "{message: <{fill}}".format(message=text, fill=str(self.width))
@@ -336,9 +352,49 @@ class UI_Text():
                 string += "|\n"
         string += "+"
         string += "-" * self.width
-        string += "+\n>>>"
+        string += "+\n>>> "
         output = input(string)
         return output
+    def display_numbered(self, text, style = ":"):
+        self.divided = False
+        self.numbering += 1
+        self.no_options = self.numbering
+        number = str(self.numbering) + style
+        if len(text) <= self.width:
+            print("|"+str(number)+" ",end="")
+            print("{message: <{fill}}".format(message=text, fill=str(self.width - (1 + len(number)))),end="")
+            print("|",end="\n")
+        else:
+            text = textwrap.wrap(text, width = self.width - (1 + len(number)))
+            first = True
+            for line in text:
+                if first:
+                    print("|"+str(number)+" ",end="")
+                    first = False
+                else:
+                    print("|",end="")
+                    print(" "*(1 + len(number)),end="")
+                print("{message: <{fill}}".format(message=line, fill=str(self.width - (1 + len(number)))),end="")
+                print("|",end="\n")
+    def display_bullet(self, text, style = "-"):
+        self.divided = False
+        self.numbering = 0
+        if len(text) <= self.width:
+            print("|"+str(style)+" ",end="")
+            print("{message: <{fill}}".format(message=text, fill=str(self.width - (1 + len(style)))),end="")
+            print("|",end="\n")
+        else:
+            text = textwrap.wrap(text, width = self.width - (1 + len(style)))
+            first = True
+            for line in text:
+                if first:
+                    print("|"+str(style)+" ",end="")
+                    first = False
+                else:
+                    print("|",end="")
+                    print(" "*(1 + len(style)),end="")
+                print("{message: <{fill}}".format(message=line, fill=str(self.width - (1 + len(style)))),end="")
+                print("|",end="\n")
     def display_menu(self):
         if self.level == 0:
             self.display_divider()
@@ -346,12 +402,12 @@ class UI_Text():
             self.display_divider()
             self.display_text("MAIN MENU")
             self.display_divider()
-            self.display_text("1: New Puzzle")
-            self.display_text("2: Load puzzle")
-            self.display_text("3: Save puzzle")
-            self.display_text("4: Edit puzzle")
-            self.display_text("5: Solve puzzle")
-            self.display_text("6: Help")
+            self.display_numbered("New Puzzle")
+            self.display_numbered("Load puzzle")
+            self.display_numbered("Save puzzle")
+            self.display_numbered("Edit puzzle")
+            self.display_numbered("Solve puzzle")
+            self.display_numbered("Help")
             self.display_text("0: Exit")
             self.display_divider()
             input_ok = False
@@ -361,16 +417,17 @@ class UI_Text():
                 self.display_divider()
                 try:
                     selection = int(selection)
-                    if selection in range(0, 7):
+                    if selection in range(0, self.no_options + 1):
                         input_ok = True
                     else:
                         self.display_divider()
-                        self.display_text("Error: Please enter a number between 0 and 6.")
+                        self.display_text("Error: Please enter a number between 0 and "+str(self.no_options)+".")
                         self.display_divider()
                 except:
                     self.display_divider()
                     self.display_text("Error: Please enter a number.")
                     self.display_divider()
+            self.no_options = 0
             if selection == 0:
                 self.level = -1
             elif selection == 1:
@@ -386,7 +443,16 @@ class UI_Text():
             elif selection == 6:
                 self.level = 6
         elif self.level == 1:
-            pass
+            self.display_divider()
+            self.display_text("NEW PUZZLE")
+            self.display_divider()
+            check = self.display_input("This will clear the current puzzle, continue?").upper()
+            self.display_divider()
+            if check in ["Y", "YES", ""]:
+                ok = True
+            if ok:
+                self.parent.puzzle = Grid()
+            self.level = 0
         elif self.level == 2:
             self.display_divider()
             self.display_text("LOAD PUZZLE")
@@ -415,22 +481,151 @@ class UI_Text():
                 self.parent.load_puzzle(filename)
             self.level = 0
         elif self.level == 3:
-            pass
+            self.display_divider()
+            self.display_text("SAVE PUZZLE")
+            self.display_divider()
+            file_ok = False
+            while not file_ok:
+                self.display_divider()
+                filename = self.display_input("Enter the filename to save th puzzle to (0 to cancel):")
+                self.display_divider()
+                if filename == "0":
+                    file_ok = True
+                else:
+                    if not filename.endswith(".pkl"):
+                        filename += ".pkl"
+                    filename = pathlib.Path(filename)
+                    if filename.is_file():
+                        self.display_divider()
+                        check = self.display_input("The file already exists, overwrite?").upper()
+                        self.display_divider()
+                        if check in ["Y", "YES", ""]:
+                            file_ok = True
+                    else:
+                        file_ok = True
+            if isinstance(filename, pathlib.Path):
+                self.display_divider()
+                self.display_text("Saving puzzle...")
+                self.display_divider()
+                self.parent.save_puzzle(filename)
+            self.level = 0
         elif self.level == 4:
-            pass
+            self.display_divider()
+            self.display_status()
+            self.display_divider()
+            self.display_text("EDIT PUZZLE")
+            self.display_divider()
+            self.display_numbered("Show Puzzle")
+            self.display_numbered("Puzzle Settings")
+            self.display_numbered("Edit Parameters")
+            self.display_numbered("Edit Locations")
+            self.display_numbered("Edit Rules")
+            self.display_text("0: Main Menu")
+            self.display_divider()
+            input_ok = False
+            while not input_ok:
+                self.display_divider()
+                selection = self.display_input("Make a selection: ")
+                self.display_divider()
+                try:
+                    selection = int(selection)
+                    if selection in range(0, self.no_options + 1):
+                        input_ok = True
+                    else:
+                        self.display_divider()
+                        self.display_text("Error: Please enter a number between 0 and "+str(self.no_options)+".")
+                        self.display_divider()
+                except:
+                    self.display_divider()
+                    self.display_text("Error: Please enter a number.")
+                    self.display_divider()
+            self.no_options = 0
+            if selection == 0:
+                self.level = 0
+            elif selection == 1:
+                self.level = 7
+            elif selection == 2:
+                self.level = 8
+            elif selection == 3:
+                self.level = 9
+            elif selection == 4:
+                self.level = 10
+            elif selection == 5:
+                self.level = 11
         elif self.level == 5:
-            pass
+            self.display_divider()
+            self.display_text("SOLUTION")
+            self.display_divider()
+            if self.parent.puzzle.initialised:
+                self.display_divider()
+                solutions = self.parent.puzzle.solution()
+                for each in solutions:
+                    self.display_bullet(each)
+                self.display_divider()
+                self.display_input("Press any key to return to the main menu.")
+                self.display_divider()
+            else:
+                self.display_divider()
+                self.display_text("Puzzle not initialised, please enter some parameters.")
+                self.display_input("Press any key to return to the main menu.")
+                self.display_divider()
+            self.level = 0
         elif self.level == 6:
             self.display_divider()
             self.display_text("HELP")
             self.display_divider()
-            self.display_text("Navigate the menus by entering the corresponding key and pressing enter.")
-            self.display_text("Puzzles can be saved or loaded from *.pkl files.")
-            self.display_text("Make sure all the parameters and rules/clues have been set up before selecting solve.")
+            self.display_bullet("Navigate the menus by entering the corresponding key and pressing enter.")
+            self.display_bullet("Puzzles can be saved or loaded from *.pkl files.")
+            self.display_bullet("Make sure all the parameters and rules/clues have been set up before selecting solve.")
             self.display_divider()
             self.display_input("Press any key to return to the main menu.")
             self.display_divider()
             self.level = 0
+        elif self.level == 7:
+            self.display_divider()
+            self.display_text("CURRENT PUZZLE")
+            self.display_divider()
+            self.display_text("Under Construction")
+            self.display_divider()
+            self.display_input("Press any key to return to the edit puzzle menu.")
+            self.display_divider()
+            self.level = 4
+        elif self.level == 8:
+            self.display_divider()
+            self.display_text("PUZZLE SETTINGS")
+            self.display_divider()
+            self.display_text("Under Construction")
+            self.display_divider()
+            self.display_input("Press any key to return to the edit puzzle menu.")
+            self.display_divider()
+            self.level = 4
+        elif self.level == 9:
+            self.display_divider()
+            self.display_text("EDIT PARAMETERS")
+            self.display_divider()
+            self.display_text("Under Construction")
+            self.display_divider()
+            self.display_input("Press any key to return to the edit puzzle menu.")
+            self.display_divider()
+            self.level = 4
+        elif self.level == 10:
+            self.display_divider()
+            self.display_text("EDIT LOCATIONS")
+            self.display_divider()
+            self.display_text("Under Construction")
+            self.display_divider()
+            self.display_input("Press any key to return to the edit puzzle menu.")
+            self.display_divider()
+            self.level = 4
+        elif self.level == 11:
+            self.display_divider()
+            self.display_text("EDIT RULES")
+            self.display_divider()
+            self.display_text("Under Construction")
+            self.display_divider()
+            self.display_input("Press any key to return to the edit puzzle menu.")
+            self.display_divider()
+            self.level = 4
     def display_status(self):
         if self.parent.puzzle.initialised:
             output = "Loc: " + str(len(self.parent.puzzle.locations)) + " Prop: " + str(self.parent.puzzle.no_of_properties) + " Comb: " + str(self.parent.puzzle.no_of_combinations) + " Rules: " + str(len(self.parent.puzzle.rules))
@@ -442,15 +637,21 @@ class UI_GUI():
         pass
 
 class Main():
-    def __init__(self, ui):
+    def __init__(self, ui=None):
         self.puzzle = Grid()
         self.ui = ui
-        self.init_ui()
-    def init_ui(self):
+        if self.ui != None:
+            self.display_ui()
+    def display_ui(self):
         if self.ui == "text":
             run = UI_Text(self)
-        elif ui == "gui":
+        elif self.ui == "gui":
             run = UI_GUI(self)
+        elif self.ui == "test":
+            self.test_run()
+        elif self.ui == None:
+            print("No UI set, using text.")
+            run = UI_Text()
         else:
             print("Invalid UI, using text.")
             run = UI_Text()
@@ -471,7 +672,7 @@ class Main():
     def test_run(self):
         self.puzzle = Grid()
         self.puzzle.change_intro("There are five houses in five different colours.\nIn each house lives a person with a different nationality.\nThe five owners drink a different beverage, smoke different brands of cigar, and keep different pets.")
-        self.puzzle.change_output_text("The {4} lives in house number {0}, which is painted {1}. He keep {2}. drinks {3}, and smokes {5} cigars.")
+        self.puzzle.change_output_text("The {4} lives in house number {0}, which is painted {1}. He keeps {2}, drinks {3}, and smokes {5} cigars.")
         self.puzzle.add_locations(["1", "2", "3", "4", "5"])
         self.puzzle.add_properties(["Red", "Green", "Yellow", "Blue", "White"])
         self.puzzle.add_properties(["Dogs", "Cats", "Fish", "Birds", "Horses"])
@@ -497,9 +698,5 @@ class Main():
         self.puzzle.solve()
         print(self.puzzle)
         self.save_puzzle("puzzle_1.pkl")
-
+        
 a = Main("text")
-#a.test_run()
-#a.load_puzzle("puzzle_1.pk1")
-#a.solve()
-#print(a)
