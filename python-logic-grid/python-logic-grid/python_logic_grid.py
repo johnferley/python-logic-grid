@@ -303,8 +303,11 @@ class Grid():
             output.append("Intro:")
             output.append(self.intro)
             output.append("")
+            output.append("Solution Format:")
+            output.append(self.output_text.format("{0}", "{1}", "{2}", "{3}", "{4}", "{5}"))
+            output.append("")
             output.append("Locations:")
-            temp = ""
+            temp = "{0} "
             for each in self.locations:
                 temp += each
                 temp += ", "
@@ -313,8 +316,10 @@ class Grid():
             output.append("")
             output.append("Parameters:")
             first = True
+            counter = 1
             for each in self.properties:
-                temp = ""
+                temp = "{"+str(counter)+"} "
+                counter += 1
                 for item in each:
                    temp += item
                    temp += ", "
@@ -405,8 +410,7 @@ class UI_Text():
         self.divided = False
         self.numbering += 1
         self.no_options = self.numbering
-        text = (" " * indent) + text
-        number = str(self.numbering) + style
+        number = (" " * indent) + str(self.numbering) + style
         if len(text) <= self.width:
             print("|"+str(number)+" ",end="")
             print("{message: <{fill}}".format(message=text, fill=str(self.width - (1 + len(number)))),end="")
@@ -427,7 +431,7 @@ class UI_Text():
         self.set_width()
         self.divided = False
         self.numbering = 0
-        text = (" " * indent) + text
+        style = (" " * indent) + style
         if len(text) <= self.width:
             print("|"+str(style)+" ",end="")
             print("{message: <{fill}}".format(message=text, fill=str(self.width - (1 + len(style)))),end="")
@@ -446,9 +450,10 @@ class UI_Text():
                 print("|",end="\n")
     def display_menu(self):
         self.set_width()
+        self.display_divider()
+        self.display_status()
+        self.display_divider()
         if self.level == 0:
-            self.display_divider()
-            self.display_status()
             self.display_divider()
             self.display_text("MAIN MENU")
             self.display_divider()
@@ -561,8 +566,6 @@ class UI_Text():
             self.level = 0
         elif self.level == 4:
             self.display_divider()
-            self.display_status()
-            self.display_divider()
             self.display_text("EDIT PUZZLE")
             self.display_divider()
             self.display_numbered("Show Puzzle")
@@ -627,6 +630,12 @@ class UI_Text():
             self.display_bullet("Navigate the menus by entering the corresponding key and pressing enter.")
             self.display_bullet("Puzzles can be saved or loaded from *.pkl files.")
             self.display_bullet("Make sure all the parameters and rules/clues have been set up before selecting solve.")
+            self.display_bullet("The text above each menu shows a summary of the current puzzle.")
+            self.display_bullet("The puzzle has not had any parameters set","Puzzle Uninitialised:",2)
+            self.display_bullet("The number of locations","Loc:",2)
+            self.display_bullet("The number of parameters","Para:",2)
+            self.display_bullet("The number of combinations for each parameter","Comb:",2)
+            self.display_bullet("The number of rules","Rules:",2)
             self.display_divider()
             self.display_input("Press any key to return to the main menu.")
             self.display_divider()
@@ -643,43 +652,279 @@ class UI_Text():
             self.level = 4
         elif self.level == 8:
             self.display_divider()
-            self.display_text("PUZZLE SETTINGS")
+            self.display_text("SETTINGS")
+            self.display_divider()
+            self.display_numbered("Edit Information")
+            self.display_numbered("Edit Solution Format")
+            self.display_text("0: Edit Menu")
+            self.display_divider()
+            input_ok = False
+            while not input_ok:
+                self.display_divider()
+                selection = self.display_input("Make a selection: ")
+                self.display_divider()
+                try:
+                    selection = int(selection)
+                    if selection in range(0, self.no_options + 1):
+                        input_ok = True
+                    else:
+                        self.display_divider()
+                        self.display_text("Error: Please enter a number between 0 and "+str(self.no_options)+".")
+                        self.display_divider()
+                except:
+                    self.display_divider()
+                    self.display_text("Error: Please enter a number.")
+                    self.display_divider()
+            self.no_options = 0
+            if selection == 0:
+                self.level = 4
+            elif selection == 1:
+                self.level = 12
+            elif selection == 2:
+                self.level = 13
+        elif self.level == 9:
+            self.display_divider()
+            self.display_text("PARAMETERS")
+            self.display_divider()
+            self.display_numbered("Show Parameters")
+            self.display_numbered("Add Parameters")
+            self.display_numbered("Edit Parameters")
+            self.display_numbered("Remove Parameters")
+            self.display_text("0: Edit Menu")
+            self.display_divider()
+            input_ok = False
+            while not input_ok:
+                self.display_divider()
+                selection = self.display_input("Make a selection: ")
+                self.display_divider()
+                try:
+                    selection = int(selection)
+                    if selection in range(0, self.no_options + 1):
+                        input_ok = True
+                    else:
+                        self.display_divider()
+                        self.display_text("Error: Please enter a number between 0 and "+str(self.no_options)+".")
+                        self.display_divider()
+                except:
+                    self.display_divider()
+                    self.display_text("Error: Please enter a number.")
+                    self.display_divider()
+            self.no_options = 0
+            if selection == 0:
+                self.level = 4
+            elif selection == 1:
+                self.level = 14
+            elif selection == 2:
+                self.level = 15
+            elif selection == 3:
+                self.level = 16
+            elif selection == 4:
+                self.level = 17
+        elif self.level == 10:
+            self.display_divider()
+            self.display_text("LOCATIONS")
+            self.display_divider()
+            self.display_numbered("Show Locations")
+            self.display_numbered("Add Locations")
+            self.display_numbered("Edit Locations")
+            self.display_numbered("Remove Locations")
+            self.display_text("0: Edit Menu")
+            self.display_divider()
+            input_ok = False
+            while not input_ok:
+                self.display_divider()
+                selection = self.display_input("Make a selection: ")
+                self.display_divider()
+                try:
+                    selection = int(selection)
+                    if selection in range(0, self.no_options + 1):
+                        input_ok = True
+                    else:
+                        self.display_divider()
+                        self.display_text("Error: Please enter a number between 0 and "+str(self.no_options)+".")
+                        self.display_divider()
+                except:
+                    self.display_divider()
+                    self.display_text("Error: Please enter a number.")
+                    self.display_divider()
+            self.no_options = 0
+            if selection == 0:
+                self.level = 4
+            elif selection == 1:
+                self.level = 18
+            elif selection == 2:
+                self.level = 19
+            elif selection == 3:
+                self.level = 20
+            elif selection == 4:
+                self.level = 21
+        elif self.level == 11:
+            self.display_divider()
+            self.display_text("RULES")
+            self.display_divider()
+            self.display_numbered("Show Rules")
+            self.display_numbered("Add Rules")
+            self.display_numbered("Edit Rules")
+            self.display_numbered("Remove Rules")
+            self.display_text("0: Edit Menu")
+            self.display_divider()
+            input_ok = False
+            while not input_ok:
+                self.display_divider()
+                selection = self.display_input("Make a selection: ")
+                self.display_divider()
+                try:
+                    selection = int(selection)
+                    if selection in range(0, self.no_options + 1):
+                        input_ok = True
+                    else:
+                        self.display_divider()
+                        self.display_text("Error: Please enter a number between 0 and "+str(self.no_options)+".")
+                        self.display_divider()
+                except:
+                    self.display_divider()
+                    self.display_text("Error: Please enter a number.")
+                    self.display_divider()
+            self.no_options = 0
+            if selection == 0:
+                self.level = 4
+            elif selection == 1:
+                self.level = 22
+            elif selection == 2:
+                self.level = 23
+            elif selection == 3:
+                self.level = 24
+            elif selection == 4:
+                self.level = 25
+        elif self.level == 12:
+            self.display_divider()
+            self.display_text("EDIT INFORMATION")
             self.display_divider()
             self.display_text("Under Construction")
             self.display_divider()
-            self.display_input("Press any key to return to the edit puzzle menu.")
+            self.display_input("Press any key to return to the puzzle settings menu.")
             self.display_divider()
-            self.level = 4
-        elif self.level == 9:
+            self.level = 8
+        elif self.level == 13:
+            self.display_divider()
+            self.display_text("EDIT SOLUTION FORMAT")
+            self.display_divider()
+            self.display_text("Under Construction")
+            self.display_divider()
+            self.display_input("Press any key to return to the puzzle settings menu.")
+            self.display_divider()
+            self.level = 8
+        elif self.level == 14:
+            self.display_divider()
+            self.display_text("CURRENT PARAMETERS")
+            self.display_divider()
+            self.display_text("Under Construction")
+            self.display_divider()
+            self.display_input("Press any key to return to the puzzle settings menu.")
+            self.display_divider()
+            self.level = 9
+        elif self.level == 15:
+            self.display_divider()
+            self.display_text("ADD PARAMETERS")
+            self.display_divider()
+            self.display_text("Under Construction")
+            self.display_divider()
+            self.display_input("Press any key to return to the puzzle settings menu.")
+            self.display_divider()
+            self.level = 9
+        elif self.level == 16:
             self.display_divider()
             self.display_text("EDIT PARAMETERS")
             self.display_divider()
             self.display_text("Under Construction")
             self.display_divider()
-            self.display_input("Press any key to return to the edit puzzle menu.")
+            self.display_input("Press any key to return to the puzzle settings menu.")
             self.display_divider()
-            self.level = 4
-        elif self.level == 10:
+            self.level = 9
+        elif self.level == 17:
+            self.display_divider()
+            self.display_text("REMOVE PARAMETERS")
+            self.display_divider()
+            self.display_text("Under Construction")
+            self.display_divider()
+            self.display_input("Press any key to return to the puzzle settings menu.")
+            self.display_divider()
+            self.level = 9
+        elif self.level == 18:
+            self.display_divider()
+            self.display_text("CURRENT LOCATIONS")
+            self.display_divider()
+            self.display_text("Under Construction")
+            self.display_divider()
+            self.display_input("Press any key to return to the puzzle settings menu.")
+            self.display_divider()
+            self.level = 10
+        elif self.level == 19:
+            self.display_divider()
+            self.display_text("ADD LOCATIONS")
+            self.display_divider()
+            self.display_text("Under Construction")
+            self.display_divider()
+            self.display_input("Press any key to return to the puzzle settings menu.")
+            self.display_divider()
+            self.level = 10
+        elif self.level == 20:
             self.display_divider()
             self.display_text("EDIT LOCATIONS")
             self.display_divider()
             self.display_text("Under Construction")
             self.display_divider()
-            self.display_input("Press any key to return to the edit puzzle menu.")
+            self.display_input("Press any key to return to the puzzle settings menu.")
             self.display_divider()
-            self.level = 4
-        elif self.level == 11:
+            self.level = 10
+        elif self.level == 21:
+            self.display_divider()
+            self.display_text("REMOVE LOCATIONS")
+            self.display_divider()
+            self.display_text("Under Construction")
+            self.display_divider()
+            self.display_input("Press any key to return to the puzzle settings menu.")
+            self.display_divider()
+            self.level = 10
+        elif self.level == 22:
+            self.display_divider()
+            self.display_text("CURRENT RULES")
+            self.display_divider()
+            self.display_text("Under Construction")
+            self.display_divider()
+            self.display_input("Press any key to return to the puzzle settings menu.")
+            self.display_divider()
+            self.level = 11
+        elif self.level == 23:
+            self.display_divider()
+            self.display_text("ADD RULES")
+            self.display_divider()
+            self.display_text("Under Construction")
+            self.display_divider()
+            self.display_input("Press any key to return to the puzzle settings menu.")
+            self.display_divider()
+            self.level = 11
+        elif self.level == 24:
             self.display_divider()
             self.display_text("EDIT RULES")
             self.display_divider()
             self.display_text("Under Construction")
             self.display_divider()
-            self.display_input("Press any key to return to the edit puzzle menu.")
+            self.display_input("Press any key to return to the puzzle settings menu.")
             self.display_divider()
-            self.level = 4
+            self.level = 11
+        elif self.level == 25:
+            self.display_divider()
+            self.display_text("REMOVE RULES")
+            self.display_divider()
+            self.display_text("Under Construction")
+            self.display_divider()
+            self.display_input("Press any key to return to the puzzle settings menu.")
+            self.display_divider()
+            self.level = 11
     def display_status(self):
         if self.parent.puzzle.initialised:
-            output = "Loc: " + str(len(self.parent.puzzle.locations)) + " Prop: " + str(self.parent.puzzle.no_of_properties) + " Comb: " + str(self.parent.puzzle.no_of_combinations) + " Rules: " + str(len(self.parent.puzzle.rules))
+            output = "Loc: " + str(len(self.parent.puzzle.locations)) + " Para: " + str(self.parent.puzzle.no_of_properties) + " Comb: " + str(self.parent.puzzle.no_of_combinations) + " Rules: " + str(len(self.parent.puzzle.rules))
             self.display_text(output)
         else:
             self.display_text("Puzzle Uninitialised")
