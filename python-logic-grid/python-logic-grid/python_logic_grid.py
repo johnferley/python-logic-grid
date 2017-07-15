@@ -1,6 +1,7 @@
 import pickle
 import textwrap
 import pathlib
+import os
 
 def search(p, ps):
     return any(p in search for search in ps)
@@ -185,12 +186,12 @@ class Grid():
                 if search(p1, self.properties) and search(p2, self.locations) and search(r, self.RELATIONS):
                     self.rules.append(Rule(p1, r, p2, self, text))
                 else:
-                    print("Invalid properties:",p1,r,p2)
+                    print("Invalid parameters:",p1,r,p2)
             else:
                 if search(p1, self.properties) and search(p2, self.properties) and search(r, self.RELATIONS):
                     self.rules.append(Rule(p1, r, p2, self, text))
                 else:
-                    print("Invalid properties:",p1,r,p2)
+                    print("Invalid parameters:",p1,r,p2)
     def add_properties(self, p, i = None):
         if self.initialised:
             if i == None:
@@ -296,12 +297,43 @@ class Grid():
                 temp[i] = s
             output.append(self.output_text.format(self.locations[house], temp[0], temp[1], temp[2], temp[3], temp[4]))
         return output
-
+    def status(self):
+        if self.initialised:
+            output = []
+            output.append("Intro:")
+            output.append(self.intro)
+            output.append("")
+            output.append("Locations:")
+            temp = ""
+            for each in self.locations:
+                temp += each
+                temp += ", "
+            temp = temp [:-2]
+            output.append(temp)
+            output.append("")
+            output.append("Parameters:")
+            first = True
+            for each in self.properties:
+                temp = ""
+                for item in each:
+                   temp += item
+                   temp += ", "
+                temp = temp [:-2]
+                output.append(temp)
+            output.append("")
+            output.append("Rules:")
+            for each in self.rules:
+                output.append("- " + str(each))
+            return output
+        else:
+            return ["Puzzle uninitialised, add some parameters and rules."]
 
 class UI_Text():
-    def __init__(self, parent):
+    def __init__(self, parent, max_width):
         self.level = 0
-        self.width = 75
+        self.max_width = max_width
+        self.width = max_width
+        self.set_width()
         self.parent = parent
         self.divided = False
         self.numbering = 0
@@ -312,19 +344,28 @@ class UI_Text():
         self.display_text("Select options by typing the number and pressing enter.")
         self.display_divider()
         self.main_loop()
+    def set_width(self):
+        hw = os.get_terminal_size()
+        if hw[0] - 3 > self.max_width:
+            self.width = self.max_width
+        else:
+            self.width = hw[0] - 3
     def main_loop(self):
         while self.level != -1:
+            self.set_width()
             self.display_menu()
         self.display_divider()
         self.display_text("Closing...")
         self.display_divider()
     def display_divider(self):
+        self.set_width()
         if self.divided == False:
             self.divided = True
             print("+",end="")
             print("-" * self.width,end="")
             print("+",end="\n")
     def display_text(self, text):
+        self.set_width()
         self.divided = False
         self.numbering = 0
         if len(text) <= self.width:
@@ -338,6 +379,7 @@ class UI_Text():
                 print("{message: <{fill}}".format(message=line, fill=str(self.width)),end="")
                 print("|",end="\n")
     def display_input(self, text):
+        self.set_width()
         self.divided = False
         self.numbering = 0
         if len(text) <= self.width:
@@ -346,8 +388,9 @@ class UI_Text():
             string += "|\n"
         else:
             text = textwrap.wrap(text, width = self.width)
+            string = ""
             for line in text:
-                string = "|"
+                string += "|"
                 string += "{message: <{fill}}".format(message=line, fill=str(self.width))
                 string += "|\n"
         string += "+"
@@ -356,6 +399,7 @@ class UI_Text():
         output = input(string)
         return output
     def display_numbered(self, text, style = ":"):
+        self.set_width()
         self.divided = False
         self.numbering += 1
         self.no_options = self.numbering
@@ -377,6 +421,7 @@ class UI_Text():
                 print("{message: <{fill}}".format(message=line, fill=str(self.width - (1 + len(number)))),end="")
                 print("|",end="\n")
     def display_bullet(self, text, style = "-"):
+        self.set_width()
         self.divided = False
         self.numbering = 0
         if len(text) <= self.width:
@@ -396,6 +441,7 @@ class UI_Text():
                 print("{message: <{fill}}".format(message=line, fill=str(self.width - (1 + len(style)))),end="")
                 print("|",end="\n")
     def display_menu(self):
+        self.set_width()
         if self.level == 0:
             self.display_divider()
             self.display_status()
@@ -585,7 +631,8 @@ class UI_Text():
             self.display_divider()
             self.display_text("CURRENT PUZZLE")
             self.display_divider()
-            self.display_text("Under Construction")
+            for each in self.parent.puzzle.status():
+                self.display_text(each)
             self.display_divider()
             self.display_input("Press any key to return to the edit puzzle menu.")
             self.display_divider()
@@ -640,21 +687,22 @@ class Main():
     def __init__(self, ui=None):
         self.puzzle = Grid()
         self.ui = ui
+        self.width = 75
         if self.ui != None:
             self.display_ui()
     def display_ui(self):
         if self.ui == "text":
-            run = UI_Text(self)
+            run = UI_Text(self, self.width)
         elif self.ui == "gui":
             run = UI_GUI(self)
         elif self.ui == "test":
             self.test_run()
         elif self.ui == None:
             print("No UI set, using text.")
-            run = UI_Text()
+            run = UI_Text(self, self.width)
         else:
             print("Invalid UI, using text.")
-            run = UI_Text()
+            run = UI_Text(self, self.width)
     def save_puzzle(self, filename):
         try:
             with open(filename, "wb") as output:
