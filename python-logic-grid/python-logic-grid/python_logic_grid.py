@@ -369,84 +369,99 @@ class UI_Text():
             print("+",end="")
             print("-" * self.width,end="")
             print("+",end="\n")
-    def display_text(self, text, indent = 0):
+    def display_text(self, text, indent = 0, margin = 1):
         self.set_width()
         self.divided = False
         self.numbering = 0
-        text = (" " * indent) + text
-        if len(text) <= self.width:
+        if len(text) + len(" " * indent) + 2 * len(" " * margin) <= self.width:
+            text = (" " * indent) + (" " * margin) + text + (" " * margin)
             print("|",end="")
             print("{message: <{fill}}".format(message=text, fill=str(self.width)),end="")
             print("|",end="\n")
         else:
-            text = textwrap.wrap(text, width = self.width)
+            text = textwrap.wrap(text, width = self.width - (len(" " * indent) + 2 * len(" " * margin)))
             for line in text:
                 print("|",end="")
-                print("{message: <{fill}}".format(message=line, fill=str(self.width)),end="")
+                print(" " * margin,end="")
+                print(" " * indent,end="")
+                print("{message: <{fill}}".format(message=line, fill=str(self.width - (len(" " * indent) + 2 * len(" " * margin)))),end="")
+                print(" " * margin,end="")
                 print("|",end="\n")
-    def display_input(self, text, indent = 0):
+    def display_input(self, text, indent = 0, margin = 1):
         self.set_width()
         self.divided = False
         self.numbering = 0
-        text = (" " * indent) + text
-        if len(text) <= self.width:
+        if len(text) + len(" " * indent) + 2 * len(" " * margin) <= self.width:
+            text = (" " * indent) + (" " * margin) + text + (" " * margin)
             string = "|"
             string += "{message: <{fill}}".format(message=text, fill=str(self.width))
             string += "|\n"
         else:
-            text = textwrap.wrap(text, width = self.width)
+            text = textwrap.wrap(text, width = self.width - (len(" " * indent) + 2 * len(" " * margin)))
             string = ""
             for line in text:
                 string += "|"
-                string += "{message: <{fill}}".format(message=line, fill=str(self.width))
+                string += " " * margin
+                string += " " * indent
+                string += "{message: <{fill}}".format(message=line, fill=str(self.width - (len(" " * indent) + 2 * len(" " * margin))))
+                string += " " * margin
                 string += "|\n"
         string += "+"
         string += "-" * self.width
         string += "+\n>>> "
         output = input(string)
         return output
-    def display_numbered(self, text, style = ":", indent = 0):
+    def display_numbered(self, text, style = ":", indent = 0, margin = 1):
+        if "0" in style:
+            style = style.split("0")
         self.set_width()
         self.divided = False
         self.numbering += 1
         self.no_options = self.numbering
-        number = (" " * indent) + str(self.numbering) + style
-        if len(text) <= self.width:
-            print("|"+str(number)+" ",end="")
-            print("{message: <{fill}}".format(message=text, fill=str(self.width - (1 + len(number)))),end="")
+        if isinstance(style, list):
+            number = (" " * indent) + style[0] + str(self.numbering) + style[1] + " "
+        else:
+            number = (" " * indent) + str(self.numbering) + style + " "
+        if len(text) + len(number) + 2 * len(" " * margin) <= self.width:
+            print("|" + (" " * margin) + str(number),end="")
+            print("{message: <{fill}}".format(message=text, fill=str(self.width - (2 * len(" " * margin) + len(number)))),end="")
+            print(" " * margin,end="")
             print("|",end="\n")
         else:
-            text = textwrap.wrap(text, width = self.width - (1 + len(number)))
+            text = textwrap.wrap(text, width = self.width - (len(number) + 2 * len(" " * margin)))
             first = True
             for line in text:
                 if first:
-                    print("|"+str(number)+" ",end="")
+                    print("|" + (" " * margin) + str(number),end="")
                     first = False
                 else:
                     print("|",end="")
-                    print(" "*(1 + len(number)),end="")
-                print("{message: <{fill}}".format(message=line, fill=str(self.width - (1 + len(number)))),end="")
+                    print(" "*(len(number) + margin),end="")
+                print("{message: <{fill}}".format(message=line, fill=str(self.width - (2 * len(" " * margin) + len(number)))),end="")
+                print(" " * margin, end="")
                 print("|",end="\n")
-    def display_bullet(self, text, style = "-", indent = 0):
+    def display_bullet(self, text, style = "-", indent = 0, margin = 1):
         self.set_width()
         self.divided = False
         self.numbering = 0
-        style = (" " * indent) + style
-        if len(text) <= self.width:
-            print("|"+str(style)+" ",end="")
-            print("{message: <{fill}}".format(message=text, fill=str(self.width - (1 + len(style)))),end="")
+        style = (" " * indent) + style + " "
+        if len(text) + len(style) + 2 * len(" " * margin) <= self.width:
+            print("|" + (" " * margin) + str(style),end="")
+            print("{message: <{fill}}".format(message=text, fill=str(self.width - (2 * len(" " * margin) + len(style)))),end="")
+            print(" " * margin, end="")
             print("|",end="\n")
         else:
-            text = textwrap.wrap(text, width = self.width - (1 + len(style)))
+            text = textwrap.wrap(text, width = self.width - (len(style) + 2 * len(" " * margin)))
             first = True
             for line in text:
                 if first:
-                    print("|"+str(style)+" ",end="")
+                    print("|" + (" " * margin) + str(style),end="")
                     first = False
                 else:
                     print("|",end="")
-                    print(" "*(1 + len(style)),end="")
-                print("{message: <{fill}}".format(message=line, fill=str(self.width - (1 + len(style)))),end="")
+                    print(" "*(len(style) + margin),end="")
+                print("{message: <{fill}}".format(message=line, fill=str(self.width - (2 * len(" " * margin) +len(style)))),end="")
+                print(" " * margin, end="")
                 print("|",end="\n")
     def display_menu(self):
         self.set_width()
