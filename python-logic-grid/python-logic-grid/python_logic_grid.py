@@ -341,8 +341,9 @@ class UI_Text():
         self.set_width()
         self.parent = parent
         self.divided = False
-        self.numbering = 0
+        self.numbering = None
         self.no_options = 0
+    def start(self):
         self.display_divider()
         self.display_text("Welcome to the Logic Grid Solver")
         self.display_divider()
@@ -372,7 +373,7 @@ class UI_Text():
     def display_text(self, text, indent = 0, margin = 1):
         self.set_width()
         self.divided = False
-        self.numbering = 0
+        self.numbering = None
         if len(text) + len(" " * indent) + 2 * len(" " * margin) <= self.width:
             text = (" " * indent) + (" " * margin) + text + (" " * margin)
             print("|",end="")
@@ -390,7 +391,7 @@ class UI_Text():
     def display_input(self, text, indent = 0, margin = 1):
         self.set_width()
         self.divided = False
-        self.numbering = 0
+        self.numbering = None
         if len(text) + len(" " * indent) + 2 * len(" " * margin) <= self.width:
             text = (" " * indent) + (" " * margin) + text + (" " * margin)
             string = "|"
@@ -411,9 +412,11 @@ class UI_Text():
         string += "+\n>>> "
         output = input(string)
         return output
-    def display_numbered(self, text, style = ":", indent = 0, margin = 1):
+    def display_numbered(self, text, style = ":", indent = 0, margin = 1, start = 1):
         if "0" in style:
             style = style.split("0")
+        if self.numbering is None:
+            self.numbering = start - 1
         self.set_width()
         self.divided = False
         self.numbering += 1
@@ -443,7 +446,7 @@ class UI_Text():
     def display_bullet(self, text, style = "-", indent = 0, margin = 1):
         self.set_width()
         self.divided = False
-        self.numbering = 0
+        self.numbering = None
         style = (" " * indent) + style + " "
         if len(text) + len(style) + 2 * len(" " * margin) <= self.width:
             print("|" + (" " * margin) + str(style),end="")
@@ -948,25 +951,35 @@ class UI_GUI():
         pass
 
 class Main():
-    def __init__(self, ui=None):
+    def __init__(self, parameters=None):
         self.puzzle = Grid()
-        self.ui = ui
+        self.parameters = parameters
         self.width = 75
-        if self.ui != None:
-            self.display_ui()
-    def display_ui(self):
-        if self.ui == "text":
-            run = UI_Text(self, self.width)
-        elif self.ui == "gui":
-            run = UI_GUI(self)
-        elif self.ui == "test":
+        self.ui = None
+        if "test" in self.parameters:
             self.test_run()
-        elif self.ui == None:
+        elif "text" in self.parameters:
+            self.ui = UI_Text(self, self.width)
+        elif "gui" in self.parameters:
+            self.ui = UI_GUI(self)
+        elif self.parameters == None:
             print("No UI set, using text.")
-            run = UI_Text(self, self.width)
+            self.ui = UI_Text(self, self.width)
         else:
-            print("Invalid UI, using text.")
-            run = UI_Text(self, self.width)
+            print("Invalid UI, or no UI set, using text.")
+            self.ui = UI_Text(self, self.width)
+    def set_ui(self, ui):
+        if ui == "text":
+            self.ui = UI_Text(self, self.width)
+        elif ui == "gui":
+            self.ui = UI_GUI(self)
+        else:
+            print("Invalid UI")
+    def display_ui(self):
+        if self.ui is not None:
+            self.ui.start()
+        else:
+            print("No UI set")
     def save_puzzle(self, filename):
         try:
             with open(filename, "wb") as output:
@@ -1012,3 +1025,4 @@ class Main():
         self.save_puzzle("puzzle_1.pkl")
         
 a = Main("text")
+a.display_ui()
