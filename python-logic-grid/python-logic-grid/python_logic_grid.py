@@ -196,40 +196,39 @@ class Grid():
         if self.initialised:
             if i == None:
                 if isinstance(p, list):
-                    while len(p) < self.no_of_combinations:
-                        p.append(None)
-                    while len(p) > self.no_of_combinations:
-                        for each in self.properties:
-                            while len(each) < len(p):
-                                each.append(None)
                     self.properties.append(p)
             else:
                 if isinstance(p, list):
-                    self.properties[i] += p1
-                    l = len(properties[i])
-                    for each in properties:
-                        while len(each) < len(l):
-                            each.append(None)
+                    self.properties[i] += p
                 else:
                     self.properties[i].append(str(p))
-                    l = len(self.properties[i])
-                    for each in self.properties:
-                        while len(each) < len(l):
-                            each.append(None)
         else:
             if isinstance(p, list) and i == None:
                 self.properties.append(p)
                 self.initialised = True
+        self.update_properties()
+    def remove_properties(self, i, j = None):
+        if self.initialised:
+            if j == None:
+                del self.properties[i]
+            else:                
+                del self.properties[i][j]
+            self.update_properties()
+    def update_properties(self):
+        for each in self.properties:
+            while each.count(None) > 0:
+                each.remove(None)
+        max = 0
+        for each in self.properties:
+            if len(each) > max:
+                max = len(each)
+        for each in self.properties:
+            while len(each) < max:
+                each.append(None)
+        if len(self.parameters) == 0:
+            self.initialised = False
         self.no_of_properties = len(self.properties)
         self.no_of_combinations = len(self.properties[0])
-    def change_properties(self, p1, p2):
-        if self.initialised:
-            self.no_of_properties = len(self.properties)
-            self.no_of_combinations = len(self.properties[0])
-    def remove_properties(self, p):
-        if self.initialised:
-            self.no_of_properties = len(self.properties)
-            self.no_of_combinations = len(self.properties[0])
     def add_locations(self, l):
         if isinstance(l, list):
             self.locations += l
@@ -286,6 +285,8 @@ class Grid():
 
             if counter > 0:
                 self.solve()
+    def reset_solution(self):
+        self.build_grid()
     def solution(self):
         output = []
         for house in range(0, len(self.locations)):
@@ -308,11 +309,7 @@ class Grid():
             output.append("")
             output.append("Locations:")
             temp = "{0} "
-            for each in self.locations:
-                temp += each
-                temp += ", "
-            temp = temp [:-2]
-            output.append(temp)
+            output.append(str(self.locations))
             output.append("")
             output.append("Parameters:")
             first = True
@@ -320,10 +317,7 @@ class Grid():
             for each in self.properties:
                 temp = "{"+str(counter)+"} "
                 counter += 1
-                for item in each:
-                   temp += item
-                   temp += ", "
-                temp = temp [:-2]
+                temp += str(each)
                 output.append(temp)
             output.append("")
             output.append("Rules:")
@@ -560,7 +554,7 @@ class UI_Text():
             file_ok = False
             while not file_ok:
                 self.display_divider()
-                filename = self.display_input("Enter the filename to save th puzzle to (blank to cancel):")
+                filename = self.display_input("Enter the filename to save the puzzle to (blank to cancel):")
                 self.display_divider()
                 if filename == "":
                     file_ok = True
@@ -704,7 +698,10 @@ class UI_Text():
             self.display_divider()
             self.display_text("PARAMETERS")
             self.display_divider()
-            self.display_numbered("Show Parameters")
+            self.display_text("Current Parameters")
+            for each in self.parent.puzzle.properties:
+                self.display_text(str(each),2)
+            self.display_divider()
             self.display_numbered("Add Parameters")
             self.display_numbered("Edit Parameters")
             self.display_numbered("Remove Parameters")
@@ -736,13 +733,13 @@ class UI_Text():
                 self.level = 15
             elif selection == 3:
                 self.level = 16
-            elif selection == 4:
-                self.level = 17
         elif self.level == 10:
             self.display_divider()
             self.display_text("LOCATIONS")
             self.display_divider()
-            self.display_numbered("Show Locations")
+            self.display_text("Current Locations")
+            self.display_text(str(self.parent.puzzle.locations),2)
+            self.display_divider()
             self.display_numbered("Add Locations")
             self.display_numbered("Edit Locations")
             self.display_numbered("Remove Locations")
@@ -769,18 +766,19 @@ class UI_Text():
             if selection == 0:
                 self.level = 4
             elif selection == 1:
-                self.level = 18
+                self.level = 17
             elif selection == 2:
-                self.level = 19
+                self.level = 18
             elif selection == 3:
-                self.level = 20
-            elif selection == 4:
-                self.level = 21
+                self.level = 19
         elif self.level == 11:
             self.display_divider()
             self.display_text("RULES")
             self.display_divider()
-            self.display_numbered("Show Rules")
+            self.display_text("Current Rules")
+            for each in self.parent.puzzle.rules:
+                self.display_bullet(str(each), "-", 2)
+            self.display_divider()
             self.display_numbered("Add Rules")
             self.display_numbered("Edit Rules")
             self.display_numbered("Remove Rules")
@@ -807,13 +805,11 @@ class UI_Text():
             if selection == 0:
                 self.level = 4
             elif selection == 1:
-                self.level = 22
+                self.level = 20
             elif selection == 2:
-                self.level = 23
+                self.level = 21
             elif selection == 3:
-                self.level = 24
-            elif selection == 4:
-                self.level = 25
+                self.level = 22
         elif self.level == 12:
             self.display_divider()
             self.display_text("EDIT INTRODUCTION")
@@ -854,50 +850,103 @@ class UI_Text():
             self.level = 8
         elif self.level == 14:
             self.display_divider()
-            self.display_text("CURRENT PARAMETERS")
+            self.display_text("ADD PARAMETERS")
             self.display_divider()
-            self.display_text("Under Construction")
+            if len(self.parent.puzzle.properties) > 0:
+                self.display_text("Current Parameter List Length: " + str(len(self.parent.puzzle.properties[0])))
+                self.display_text("New Parameter Lists longer than this will fill all current parameter lists by adding empty values.")
+                self.display_text("If the new list is shorter it will be filled with empty properties.")
             self.display_divider()
-            self.display_input("Press any key to return to the puzzle settings menu.")
+            new_parameters = self.display_input("Enter a list of paramters, separated by commas only:")
+            new_parameters = new_parameters.split(",")
+            self.parent.puzzle.add_properties(new_parameters)
+            self.display_divider()
+            self.display_text("New Parameters added.")
             self.display_divider()
             self.level = 9
         elif self.level == 15:
             self.display_divider()
-            self.display_text("ADD PARAMETERS")
-            self.display_divider()
-            self.display_text("Under Construction")
-            self.display_divider()
-            self.display_input("Press any key to return to the puzzle settings menu.")
-            self.display_divider()
-            self.level = 9
-        elif self.level == 16:
-            self.display_divider()
             self.display_text("EDIT PARAMETERS")
             self.display_divider()
-            self.display_text("Under Construction")
+            self.display_text("Current Parameters")
+            for each in self.parent.puzzle.properties:
+                self.display_numbered(str(each), ":", 2,1,1)
+            self.display_text("0: Parameters Menu", 2)
             self.display_divider()
-            self.display_input("Press any key to return to the puzzle settings menu.")
-            self.display_divider()
-            self.level = 9
-        elif self.level == 17:
+            input_ok = False
+            while not input_ok:
+                self.display_divider()
+                selection = self.display_input("Select a parameter to edit: ")
+                self.display_divider()
+                try:
+                    selection = int(selection)
+                    if selection in range(0, self.no_options + 1):
+                        input_ok = True
+                    else:
+                        self.display_divider()
+                        self.display_text("Error: Please enter a number between 0 and "+str(self.no_options)+".")
+                        self.display_divider()
+                except:
+                    self.display_divider()
+                    self.display_text("Error: Please enter a number.")
+                    self.display_divider()
+            self.no_options = 0
+            if selection == 0:
+                self.level = 9
+            else:
+                self.display_divider()
+                self.display_text("Selected Parameter List:")
+                self.display_text(str(self.parent.puzzle.properties[selection - 1]))
+                self.display_divider()
+                edits = self.display_input("Enter a list of values separated by commas only. Prefix parameters with '+' to add them, and '-' to remove them, paramters with no prefix will also be added.")
+                self.display_divider()
+                edits = edits.split(",")
+                for each in edits:
+                    if each[0] == "-":
+                        self.parent.puzzle.remove_properties(selection - 1, self.parent.puzzle.properties[selection - 1].index(each[1:]))
+                    elif each[0] == "+":
+                        self.parent.puzzle.add_properties(each[1:], selection - 1)
+                    else:
+                        self.parent.puzzle.add_properties(each, selection - 1)
+                self.display_divider()
+                self.display_text("Parameters Edited.")
+                self.display_divider()
+        elif self.level == 16:
             self.display_divider()
             self.display_text("REMOVE PARAMETERS")
             self.display_divider()
-            self.display_text("Under Construction")
+            self.display_text("Current Parameters")
+            for each in self.parent.puzzle.properties:
+                self.display_numbered(str(each), ":", 2,1,1)
+            self.display_text("0: Parameters Menu", 2)
             self.display_divider()
-            self.display_input("Press any key to return to the puzzle settings menu.")
-            self.display_divider()
+            input_ok = False
+            while not input_ok:
+                self.display_divider()
+                selection = self.display_input("Select a parameter to remove: ")
+                self.display_divider()
+                try:
+                    selection = int(selection)
+                    if selection in range(0, self.no_options + 1):
+                        input_ok = True
+                    else:
+                        self.display_divider()
+                        self.display_text("Error: Please enter a number between 0 and "+str(self.no_options)+".")
+                        self.display_divider()
+                except:
+                    self.display_divider()
+                    self.display_text("Error: Please enter a number.")
+                    self.display_divider()
+            self.no_options = 0
+            if selection == 0:
+                self.level = 9
+            else:
+                self.parent.puzzle.remove_properties(selection - 1)
+                self.display_divider()
+                self.display_text("Parameter Removed.")
+                self.display_divider()
             self.level = 9
-        elif self.level == 18:
-            self.display_divider()
-            self.display_text("CURRENT LOCATIONS")
-            self.display_divider()
-            self.display_text("Under Construction")
-            self.display_divider()
-            self.display_input("Press any key to return to the puzzle settings menu.")
-            self.display_divider()
-            self.level = 10
-        elif self.level == 19:
+        elif self.level == 17:
             self.display_divider()
             self.display_text("ADD LOCATIONS")
             self.display_divider()
@@ -906,7 +955,7 @@ class UI_Text():
             self.display_input("Press any key to return to the puzzle settings menu.")
             self.display_divider()
             self.level = 10
-        elif self.level == 20:
+        elif self.level == 18:
             self.display_divider()
             self.display_text("EDIT LOCATIONS")
             self.display_divider()
@@ -915,7 +964,7 @@ class UI_Text():
             self.display_input("Press any key to return to the puzzle settings menu.")
             self.display_divider()
             self.level = 10
-        elif self.level == 21:
+        elif self.level == 19:
             self.display_divider()
             self.display_text("REMOVE LOCATIONS")
             self.display_divider()
@@ -924,16 +973,7 @@ class UI_Text():
             self.display_input("Press any key to return to the puzzle settings menu.")
             self.display_divider()
             self.level = 10
-        elif self.level == 22:
-            self.display_divider()
-            self.display_text("CURRENT RULES")
-            self.display_divider()
-            self.display_text("Under Construction")
-            self.display_divider()
-            self.display_input("Press any key to return to the puzzle settings menu.")
-            self.display_divider()
-            self.level = 11
-        elif self.level == 23:
+        elif self.level == 20:
             self.display_divider()
             self.display_text("ADD RULES")
             self.display_divider()
@@ -942,7 +982,7 @@ class UI_Text():
             self.display_input("Press any key to return to the puzzle settings menu.")
             self.display_divider()
             self.level = 11
-        elif self.level == 24:
+        elif self.level == 21:
             self.display_divider()
             self.display_text("EDIT RULES")
             self.display_divider()
@@ -951,7 +991,7 @@ class UI_Text():
             self.display_input("Press any key to return to the puzzle settings menu.")
             self.display_divider()
             self.level = 11
-        elif self.level == 25:
+        elif self.level == 22:
             self.display_divider()
             self.display_text("REMOVE RULES")
             self.display_divider()
