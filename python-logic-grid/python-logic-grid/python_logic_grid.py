@@ -533,9 +533,9 @@ class UI_Text():
             found = False
             while not found:
                 self.display_divider()
-                filename = self.display_input("Enter the filename of the puzzle to load (0 to cancel):")
+                filename = self.display_input("Enter the filename of the puzzle to load (blank to cancel):")
                 self.display_divider()
-                if filename == "0":
+                if filename == "":
                     found = True
                 else:
                     if not filename.endswith(".pkl"):
@@ -560,9 +560,9 @@ class UI_Text():
             file_ok = False
             while not file_ok:
                 self.display_divider()
-                filename = self.display_input("Enter the filename to save th puzzle to (0 to cancel):")
+                filename = self.display_input("Enter the filename to save th puzzle to (blank to cancel):")
                 self.display_divider()
-                if filename == "0":
+                if filename == "":
                     file_ok = True
                 else:
                     if not filename.endswith(".pkl"):
@@ -672,7 +672,7 @@ class UI_Text():
             self.display_divider()
             self.display_text("SETTINGS")
             self.display_divider()
-            self.display_numbered("Edit Information")
+            self.display_numbered("Edit Introduction")
             self.display_numbered("Edit Solution Format")
             self.display_text("0: Edit Menu")
             self.display_divider()
@@ -816,21 +816,41 @@ class UI_Text():
                 self.level = 25
         elif self.level == 12:
             self.display_divider()
-            self.display_text("EDIT INFORMATION")
+            self.display_text("EDIT INTRODUCTION")
             self.display_divider()
-            self.display_text("Under Construction")
+            self.display_text("Current Introduction:")
+            self.display_text(self.parent.puzzle.intro)
             self.display_divider()
-            self.display_input("Press any key to return to the puzzle settings menu.")
+            check = self.display_input("Edit introduction?").upper()
             self.display_divider()
+            if check in ["Y", "YES", ""]:
+                self.display_divider()
+                new_intro = self.display_input("Enter new introduction:")
+                self.display_divider()
+                self.parent.puzzle.change_intro(new_intro)
+                self.display_text("Introduction changed")
+                self.display_divider()
             self.level = 8
         elif self.level == 13:
             self.display_divider()
             self.display_text("EDIT SOLUTION FORMAT")
             self.display_divider()
-            self.display_text("Under Construction")
+            self.display_text("Current Format:")
+            self.display_text(self.parent.puzzle.output_text)
             self.display_divider()
-            self.display_input("Press any key to return to the puzzle settings menu.")
+            check = self.display_input("Edit format?").upper()
             self.display_divider()
+            if check in ["Y", "YES", ""]:
+                self.display_divider()
+                self.display_text("In order to display a locations parameters or location description enter its number, including the '{}':")
+                self.display_numbered("Locations" + str(self.parent.puzzle.locations), "{0}", 2, 1, 0)
+                for each in self.parent.puzzle.properties:
+                    self.display_numbered(str(each), "{0}", 2, 1, 0)
+                new_format = self.display_input("Enter new format:")
+                self.display_divider()
+                self.parent.puzzle.change_output_text(new_format)
+                self.display_text("Format changed")
+                self.display_divider()
             self.level = 8
         elif self.level == 14:
             self.display_divider()
