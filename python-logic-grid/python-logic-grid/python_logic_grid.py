@@ -6,14 +6,6 @@ import os
 def search(p, ps):
     return any(p in search for search in ps)
 
-class Node():
-    def __init__(self, action):
-        children = []
-    def up(self):
-        pass
-    def down(self, target):
-        pass
-
 class Rule():
     def __init__(self, p1, r, p2, grid, text):
         self.p1 = p1
@@ -192,6 +184,30 @@ class Grid():
                     self.rules.append(Rule(p1, r, p2, self, text))
                 else:
                     print("Invalid parameters:",p1,r,p2)
+    def remove_rule(self, rule):
+        if isinstance(rule, Rule):
+            self.rules.remove(rule)
+        else:
+            del self.rules[rule]
+    def change_rule(self, rule, p1, r, p2, text):
+        if isinstance(rule, Rule):
+            if p1 != "":
+                rule.p1 = p1
+            if r != "":
+                rule.r = r
+            if p2 != "":
+                rule.p2 = p2
+            if text != "":
+                rule.text = text
+        else:
+            if p1 != "":
+                self.rules[rule].p1 = p1
+            if r != "":
+                self.rules[rule].r = r
+            if p2 != "":
+                self.rules[rule].p2 = p2
+            if text != "":
+                self.rules[rule].text = text
     def add_properties(self, p, i = None):
         if self.initialised:
             if i == None:
@@ -234,8 +250,6 @@ class Grid():
             self.locations += l
         else:
             self.locations.append(str(l))
-    def change_locations(self, p1, p2):
-        pass
     def remove_locations(self, l):
         if isinstance(l, list):
             for each in l:
@@ -286,7 +300,6 @@ class Grid():
                             if col2 != j and self.values[i][col2] != "":
                                 counter += 1
                                 self.values[i][col2] = ""
-
             if counter > 0:
                 self.solve()
     def reset_solution(self):
@@ -631,12 +644,12 @@ class UI_Text():
                 for each in solutions:
                     self.display_bullet(each)
                 self.display_divider()
-                self.display_input("Press any key to return to the main menu.")
+                self.display_input("Press enter to return to the main menu.")
                 self.display_divider()
             else:
                 self.display_divider()
                 self.display_text("Puzzle not initialised, please enter some parameters.")
-                self.display_input("Press any key to return to the main menu.")
+                self.display_input("Press enter to return to the main menu.")
                 self.display_divider()
             self.level = 0
         elif self.level == 6:
@@ -653,7 +666,7 @@ class UI_Text():
             self.display_bullet("The number of combinations for each parameter","Comb:",2)
             self.display_bullet("The number of rules","Rules:",2)
             self.display_divider()
-            self.display_input("Press any key to return to the main menu.")
+            self.display_input("Press enter to return to the main menu.")
             self.display_divider()
             self.level = 0
         elif self.level == 7:
@@ -663,7 +676,7 @@ class UI_Text():
             for each in self.parent.puzzle.status():
                 self.display_text(each)
             self.display_divider()
-            self.display_input("Press any key to return to the edit puzzle menu.")
+            self.display_input("Press enter to return to the edit puzzle menu.")
             self.display_divider()
             self.level = 4
         elif self.level == 8:
@@ -780,9 +793,9 @@ class UI_Text():
             for each in self.parent.puzzle.rules:
                 self.display_bullet(str(each), "-", 2)
             self.display_divider()
-            self.display_numbered("Add Rules")
-            self.display_numbered("Edit Rules")
-            self.display_numbered("Remove Rules")
+            self.display_numbered("Add Rule")
+            self.display_numbered("Edit Rule")
+            self.display_numbered("Remove Rule")
             self.display_text("0: Edit Menu")
             self.display_divider()
             input_ok = False
@@ -979,31 +992,259 @@ class UI_Text():
             self.level = 10
         elif self.level == 19:
             self.display_divider()
-            self.display_text("ADD RULES")
+            self.display_text("ADD RULE")
             self.display_divider()
-            self.display_text("Under Construction")
-            self.display_divider()
-            self.display_input("Press any key to return to the puzzle settings menu.")
-            self.display_divider()
-            self.level = 11
+            if self.parent.puzzle.initialised:
+                self.display_divider()
+                self.display_text("Current Rules")
+                for each in self.parent.puzzle.rules:
+                    self.display_bullet(str(each), "-", 2)
+                self.display_divider()
+                self.display_text("Current Parameters:")
+                for each in self.parent.puzzle.properties:
+                    self.display_text(str(each), 2)
+                self.display_text("Enter the parameter exactly as it appears in the list, for instance '" + self.parent.puzzle.properties[0][0] + "'.")
+                self.display_text("Available Relationships:")
+                self.display_text(str(self.parent.puzzle.RELATIONS), 2)
+                self.display_text("Enter the relationship exactly as it appears in the list, for instance '" + self.parent.puzzle.RELATIONS[0] + "'.")
+                self.display_text("To include a parameter in the output text enter the number of the parameter as follows:")
+                self.display_text("{0} = Parameter 1", 2)
+                self.display_text("{1} = Parameter 2", 2)
+                self.display_text("{2} = Relationship", 2)
+                self.display_text("Commas are allowed in the Output Text.")
+                input_ok = False
+                while not input_ok:
+                    self.display_text("Enter the parameters for the rule, separated by commas, in the following order:")
+                    self.display_text("Parameter 1, Relationship, Parameter 2, Output Text", 2)
+                    new_rule = self.display_input("Leave blank to return to the edit rules menu:")
+                    self.display_divider()
+                    if new_rule == "":
+                        input_ok = True
+                        self.level = 11
+                    else:
+                        new_rule = new_rule.split(",", 3)
+                        if len(new_rule) == 4:
+                            check_1 = False
+                            check_2 = False
+                            for each in self.parent.puzzle.properties:
+                                if new_rule[0] in each:
+                                    check_1 = True
+                                if new_rule[2] in each:
+                                    check_2 = True
+                            check_3 = False
+                            if new_rule[1] in self.parent.puzzle.RELATIONS:
+                                check_3 = True
+                            check_4 = True
+                            for i in range(0, len(new_rule[3])):
+                                if new_rule[3][i] == "{":
+                                    start = i + 1
+                                    i += 1                                
+                                    if i > len(new_rule[3]) - 1:
+                                        break
+                                    while new_rule[3][i] != "}":
+                                        i += 1                                
+                                        if i >= len(new_rule[3]) - 1:
+                                            break
+                                    end = i
+                                    test = new_rule[3][start:end]
+                                    print(test)
+                                    if test.isnumeric():
+                                        if int(test) > 2:
+                                            check_4 = False
+                                    else:
+                                        check_4 = False                                
+                                    if i > len(new_rule[3]) - 1:
+                                        break
+                            self.display_divider()
+                            if check_1 == False:
+                                self.display_text("First parameter not in list.")
+                            if check_2 == False:
+                                self.display_text("Second parameter not in list.")
+                            if check_3 == False:
+                                self.display_text("Relationship not in list.")
+                            if check_4 == False:
+                                self.display_text("Output Text variables must be between 0 and 2.")
+                            self.display_divider()
+                            if check_1 and check_2 and check_3 and check_4:
+                                input_ok = True
+                                self.parent.puzzle.add_rule(new_rule[0], new_rule[1], new_rule[2], new_rule[3])
+                                self.display_divider()
+                                self.display_text("New Rule added.")
+                                self.display_divider()
+                        else:
+                                self.display_divider()
+                                self.display_text("Please enter 4 values.")
+                                self.display_divider()
+            else:
+                self.display_divider()
+                self.display_text("Please add some parameters before setting up the rules.")
+                self.display_divider()
+                self.display_input("Press enter to return to the edit rules menu.")
+                self.display_divider()
+                self.level = 11
         elif self.level == 20:
             self.display_divider()
-            self.display_text("EDIT RULES")
+            self.display_text("EDIT RULE")
             self.display_divider()
-            self.display_text("Under Construction")
+            self.display_text("Current Rules")
+            for each in self.parent.puzzle.rules:
+                self.display_numbered(str(each), ":", 2)
             self.display_divider()
-            self.display_input("Press any key to return to the puzzle settings menu.")
+            self.display_text("0: Edit Rules Menu", 2)
             self.display_divider()
+            input_ok = False
+            while not input_ok:
+                self.display_divider()
+                selection = self.display_input("Enter the number of the rule to edit:")
+                self.display_divider()
+                try:
+                    selection = int(selection)
+                    if selection in range(0, self.no_options + 1):
+                        input_ok = True
+                    else:
+                        self.display_divider()
+                        self.display_text("Error: Please enter a number between 0 and "+str(self.no_options)+".")
+                        self.display_divider()
+                except:
+                    self.display_divider()
+                    self.display_text("Error: Please enter a number.")
+                    self.display_divider()
+            self.no_options = 0
+            if selection == 0:
+                self.level = 11
+            else:
+                self.display_divider()
+                self.display_text("Selected Rule:")
+                self.display_text(str(self.parent.puzzle.rules[selection-1].p1) + ", " + str(self.parent.puzzle.rules[selection-1].r) + ", " + str(self.parent.puzzle.rules[selection-1].p2) + ", " + str(self.parent.puzzle.rules[selection-1].text))
+                self.display_divider()
+                self.display_text("Current Parameters:")
+                for each in self.parent.puzzle.properties:
+                    self.display_text(str(each), 2)
+                self.display_text("Enter the parameter exactly as it appears in the list, for instance '" + self.parent.puzzle.properties[0][0] + "'.")
+                self.display_text("Available Relationships:")
+                self.display_text(str(self.parent.puzzle.RELATIONS), 2)
+                self.display_text("Enter the relationship exactly as it appears in the list, for instance '" + self.parent.puzzle.RELATIONS[0] + "'.")
+                self.display_text("To include a parameter in the output text enter the number of the parameter as follows:")
+                self.display_text("{0} = Parameter 1", 2)
+                self.display_text("{1} = Parameter 2", 2)
+                self.display_text("{2} = Relationship", 2)
+                self.display_text("Commas are allowed in the Output Text.")
+                input_ok = False
+                while not input_ok:
+                    self.display_text("Enter the parameters for the rule, separated by commas, in the following order:")
+                    self.display_text("Parameter 1, Relationship, Parameter 2, Output Text", 2)
+                    self.display_text("Entering a blank parameter will leave that parameter unchanged.")
+                    new_rule = self.display_input("Leave blank to return to the edit rules menu:")
+                    self.display_divider()
+                    if new_rule == "":
+                        input_ok = True
+                        self.level = 11
+                    else:
+                        new_rule = new_rule.split(",", 3)
+                        if len(new_rule) == 4:
+                            check_1 = False
+                            check_2 = False
+                            for each in self.parent.puzzle.properties:
+                                if new_rule[0] in each:
+                                    check_1 = True
+                                if new_rule[2] in each:
+                                    check_2 = True
+                            check_3 = False
+                            if new_rule[1] in self.parent.puzzle.RELATIONS:
+                                check_3 = True
+                            check_4 = True
+                            for i in range(0, len(new_rule[3])):
+                                if new_rule[3][i] == "{":
+                                    start = i + 1
+                                    i += 1                                
+                                    if i > len(new_rule[3]) - 1:
+                                        break
+                                    while new_rule[3][i] != "}":
+                                        i += 1                                
+                                        if i >= len(new_rule[3]) - 1:
+                                            break
+                                    end = i
+                                    test = new_rule[3][start:end]
+                                    print(test)
+                                    if test.isnumeric():
+                                        if int(test) > 2:
+                                            check_4 = False
+                                    else:
+                                        check_4 = False                                
+                                    if i > len(new_rule[3]) - 1:
+                                        break
+                            self.display_divider()
+                            if new_rule[0] == "":
+                                check_1 = True
+                            if new_rule[2] == "":
+                                check_2 = True
+                            if new_rule[1] == "":
+                                check_3 = True
+                            if new_rule[3] == "":
+                                check_4 = True
+                            if check_1 == False:
+                                self.display_text("First parameter not in list.")
+                            if check_2 == False:
+                                self.display_text("Second parameter not in list.")
+                            if check_3 == False:
+                                self.display_text("Relationship not in list.")
+                            if check_4 == False:
+                                self.display_text("Output Text variables must be between 0 and 2.")
+                            self.display_divider()
+                            if check_1 and check_2 and check_3 and check_4:
+                                input_ok = True
+                                self.parent.puzzle.change_rule(selection-1,new_rule[0], new_rule[1], new_rule[2], new_rule[3])
+                                self.display_divider()
+                                self.display_text("Rule Edited.")
+                                self.display_divider()
+                        else:
+                                self.display_divider()
+                                self.display_text("Please enter 4 values.")
+                                self.display_divider()
             self.level = 11
         elif self.level == 21:
             self.display_divider()
-            self.display_text("REMOVE RULES")
+            self.display_text("REMOVE RULE")
             self.display_divider()
-            self.display_text("Under Construction")
-            self.display_divider()
-            self.display_input("Press any key to return to the puzzle settings menu.")
-            self.display_divider()
-            self.level = 11
+            if self.parent.puzzle.initialised:
+                self.display_text("Current Rules")
+                for each in self.parent.puzzle.rules:
+                    self.display_numbered(str(each), ":", 2)
+                self.display_divider()
+                self.display_text("0: Edit Rules Menu", 2)
+                self.display_divider()
+                input_ok = False
+                while not input_ok:
+                    self.display_divider()
+                    selection = self.display_input("Enter the number of the rule to remove:")
+                    self.display_divider()
+                    try:
+                        selection = int(selection)
+                        if selection in range(0, self.no_options + 1):
+                            input_ok = True
+                        else:
+                            self.display_divider()
+                            self.display_text("Error: Please enter a number between 0 and "+str(self.no_options)+".")
+                            self.display_divider()
+                    except:
+                        self.display_divider()
+                        self.display_text("Error: Please enter a number.")
+                        self.display_divider()
+                self.no_options = 0
+                if selection == 0:
+                    self.level = 11
+                else:
+                    self.parent.puzzle.remove_rule(selection - 1)
+                    self.display_divider()
+                    self.display_text("Rule Removed.")
+                    self.display_divider()
+            else:
+                self.display_divider()
+                self.display_text("Please add some parameters before setting up the rules.")
+                self.display_divider()
+                self.display_input("Press enter to return to the edit rules menu.")
+                self.display_divider()
+                self.level = 11
     def display_status(self):
         if self.parent.puzzle.initialised:
             output = "Loc: " + str(len(self.parent.puzzle.locations)) + " Para: " + str(self.parent.puzzle.no_of_properties) + " Comb: " + str(self.parent.puzzle.no_of_combinations) + " Rules: " + str(len(self.parent.puzzle.rules))
