@@ -236,8 +236,12 @@ class Grid():
             self.locations.append(str(l))
     def change_locations(self, p1, p2):
         pass
-    def remove_locations(self, p):
-        pass
+    def remove_locations(self, l):
+        if isinstance(l, list):
+            for each in l:
+                self.locations.remove(str(each))
+        else:
+            self.locations.remove(str(l))
     def change_intro(self, s):
         self.intro = s
     def change_output_text(self, s):
@@ -741,7 +745,6 @@ class UI_Text():
             self.display_text(str(self.parent.puzzle.locations),2)
             self.display_divider()
             self.display_numbered("Add Locations")
-            self.display_numbered("Edit Locations")
             self.display_numbered("Remove Locations")
             self.display_text("0: Edit Menu")
             self.display_divider()
@@ -769,8 +772,6 @@ class UI_Text():
                 self.level = 17
             elif selection == 2:
                 self.level = 18
-            elif selection == 3:
-                self.level = 19
         elif self.level == 11:
             self.display_divider()
             self.display_text("RULES")
@@ -805,11 +806,11 @@ class UI_Text():
             if selection == 0:
                 self.level = 4
             elif selection == 1:
-                self.level = 20
+                self.level = 19
             elif selection == 2:
-                self.level = 21
+                self.level = 20
             elif selection == 3:
-                self.level = 22
+                self.level = 21
         elif self.level == 12:
             self.display_divider()
             self.display_text("EDIT INTRODUCTION")
@@ -857,7 +858,7 @@ class UI_Text():
                 self.display_text("New Parameter Lists longer than this will fill all current parameter lists by adding empty values.")
                 self.display_text("If the new list is shorter it will be filled with empty properties.")
             self.display_divider()
-            new_parameters = self.display_input("Enter a list of paramters, separated by commas only:")
+            new_parameters = self.display_input("Enter a list of parameters, separated by commas only:")
             new_parameters = new_parameters.split(",")
             self.parent.puzzle.add_properties(new_parameters)
             self.display_divider()
@@ -950,30 +951,33 @@ class UI_Text():
             self.display_divider()
             self.display_text("ADD LOCATIONS")
             self.display_divider()
-            self.display_text("Under Construction")
+            if len(self.parent.puzzle.locations) > 0:
+                self.display_text("Current Locations:")
+                self.display_text(str(self.parent.puzzle.locations))
             self.display_divider()
-            self.display_input("Press any key to return to the puzzle settings menu.")
+            new_locations = self.display_input("Enter a list of locations to add, separated by commas only:")
+            new_locations = new_locations.split(",")
+            self.parent.puzzle.add_locations(new_locations)
+            self.display_divider()
+            self.display_text("New Locations added.")
             self.display_divider()
             self.level = 10
         elif self.level == 18:
             self.display_divider()
-            self.display_text("EDIT LOCATIONS")
+            self.display_text("REMOVE LOCATIONS")
             self.display_divider()
-            self.display_text("Under Construction")
+            if len(self.parent.puzzle.locations) > 0:
+                self.display_text("Current Locations:")
+                self.display_text(str(self.parent.puzzle.locations))
             self.display_divider()
-            self.display_input("Press any key to return to the puzzle settings menu.")
+            new_locations = self.display_input("Enter a list of locations to remove, separated by commas only:")
+            new_locations = new_locations.split(",")
+            self.parent.puzzle.remove_locations(new_locations)
+            self.display_divider()
+            self.display_text("New Locations removed.")
             self.display_divider()
             self.level = 10
         elif self.level == 19:
-            self.display_divider()
-            self.display_text("REMOVE LOCATIONS")
-            self.display_divider()
-            self.display_text("Under Construction")
-            self.display_divider()
-            self.display_input("Press any key to return to the puzzle settings menu.")
-            self.display_divider()
-            self.level = 10
-        elif self.level == 20:
             self.display_divider()
             self.display_text("ADD RULES")
             self.display_divider()
@@ -982,7 +986,7 @@ class UI_Text():
             self.display_input("Press any key to return to the puzzle settings menu.")
             self.display_divider()
             self.level = 11
-        elif self.level == 21:
+        elif self.level == 20:
             self.display_divider()
             self.display_text("EDIT RULES")
             self.display_divider()
@@ -991,7 +995,7 @@ class UI_Text():
             self.display_input("Press any key to return to the puzzle settings menu.")
             self.display_divider()
             self.level = 11
-        elif self.level == 22:
+        elif self.level == 21:
             self.display_divider()
             self.display_text("REMOVE RULES")
             self.display_divider()
